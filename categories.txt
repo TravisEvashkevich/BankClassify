@@ -1,19 +1,11 @@
 Income
-Bill - General
-Bill - Utilities
-Bill - Communications
-Travel - General
-Travel - Car
-Travel - Petrol
-Supermarket
-Cash Out
-Eating Out
-House
-Books
-Craft
-Charity Shop       
-Presents
-Toiletries
-Mortgage
-Paypal
+Transfers
+Groceries
+Evening Money
+Gas/Elec
+Fun Money
+Council Tax
+Internet
+Cash
+Mortage/Rent
 Unclassified

@@ -10,8 +10,8 @@ from tabulate import tabulate
 
 class BankClassify():
 
-    def __init__(self, data="AllData.csv"):
-        """Load in the previous data (by default from AllData.csv) and initialise the classifier"""
+    def __init__(self, data="2020Data.csv"):
+        """Load in the previous data (by default from 2020Data.csv) and initialise the classifier"""
         if os.path.exists(data):
             self.prev_data = pd.read_csv(data)
         else:
@@ -19,7 +19,7 @@ class BankClassify():
 
         self.classifier = NaiveBayesClassifier(self._get_training(self.prev_data), self._extractor)
 
-    def add_data(self, filename, bank="santander"):
+    def add_data(self, filename, bank="nationwide"):
         """Add new data and interactively classify it.
 
         Arguments:
@@ -35,7 +35,7 @@ class BankClassify():
         self._ask_with_guess(self.new_data)
 
         self.prev_data = pd.concat([self.prev_data, self.new_data])
-        self.prev_data.to_csv("AllData.csv", index=False)
+        self.prev_data.to_csv("2020Data.csv", index=False)
 
     def _prep_for_analysis(self):
         """Prepare data for analysis in pandas, setting index types and subsetting"""
@@ -149,6 +149,7 @@ class BankClassify():
         dates = []
         descs = []
         amounts = []
+        balances = []
 
         for line in lines[5:]:
 
@@ -180,12 +181,17 @@ class BankClassify():
             #Description
             descs.append(splits[2])
 
-        df = pd.DataFrame({'date':dates, 'desc':descs, 'amount':amounts})
+            #Balance
+            balance = float(re.sub("[^0-9\.-]", "", splits[5]))
+
+            balances.append(balance)
+
+        df = pd.DataFrame({'date':dates, 'desc':descs, 'amount':amounts, "balance":balances})
 
         df['amount'] = df.amount.astype(float)
         df['desc'] = df.desc.astype(str)
         df['date'] = df.date.astype(str)
-
+        df['balance'] = df.balance.astype(float)
         return df
 
     def _read_santander_file(self, filename):
@@ -262,3 +268,14 @@ class BankClassify():
         regexp = "|".join(delims)
 
         return re.split(regexp, string)
+
+
+def main():
+    bc = BankClassify()
+    csvname = input("What CSV should I use?\n")
+
+    bc.add_data(csvname)
+
+
+if __name__ == "__main__":
+    main()
