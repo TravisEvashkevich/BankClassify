@@ -2,6 +2,7 @@ import re
 import dateutil
 import os
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 from textblob.classifiers import NaiveBayesClassifier
@@ -34,8 +35,28 @@ class BankClassify():
 
         self._ask_with_guess(self.new_data)
 
-        self.prev_data = pd.concat([self.prev_data, self.new_data])
+        self.prev_data = pd.concat([self.prev_data, self.new_data], ignore_index=True)
+        self._check_for_dupes()
+        # sort by dates before exporting.
+        self.prev_data = self.prev_data.iloc[pd.to_datetime(self.prev_data["date"], format="%d/%m/%Y").values.argsort()]
         self.prev_data.to_csv("2020Data.csv", index=False)
+
+    def _check_for_dupes(self):
+        """Go through the newly concat'd data and check for dupes
+        and then ask the user if they want to keep the dupe or not
+        """
+        dupes = self.prev_data[self.prev_data.duplicated(keep="first")]
+        dupes.reset_index(inplace=True)
+        if not len(dupes) > 1:
+            return
+
+        print("Dupes found:", dupes, sep='\n')
+        print("Dupes found, Y or N to keep")
+        for (index, row) in reversed(list(dupes.iterrows())):
+            print(index, row.values)
+            decision = input("Keep?:\n")
+            if decision.lower() == "n":
+                self.prev_data.drop(row["index"], inplace=True)
 
     def _prep_for_analysis(self):
         """Prepare data for analysis in pandas, setting index types and subsetting"""
@@ -272,10 +293,16 @@ class BankClassify():
 
 def main():
     bc = BankClassify()
-    csvname = input("What CSV should I use?\n")
 
-    bc.add_data(csvname)
+    csvs = [str(x) for x in sorted(Path(r"./statements").iterdir(), key=os.path.getmtime, reverse=True)]
+    print("Found statements:\n")
+    for i, item in enumerate(csvs):
+        print(f"{i}: {item}")
+    csvnum = int(input("What CSV should I use?\n" ))
 
+    bc.add_data(csvs[csvnum])
+
+    input("Finished!")
 
 if __name__ == "__main__":
     main()
